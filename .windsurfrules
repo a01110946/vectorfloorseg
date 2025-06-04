@@ -1,0 +1,8 @@
+We are using Test Driven Development (TDD) to develop this project.
+Always follow the global rules in the .codeium/windsurf/global_rules.md file.
+Create a Git repository for this project. Then commit the changes after each step.
+After each phase, update the project-structure.md file to reflect the changes.
+After each phase, update the docs/ directory with the relevant documentation.
+After each phase, push the changes to the remote repository.
+Read the project-structure.md file to understand the project structure.
+Read the document relevant to the phase you are working on in the docs/ directory.

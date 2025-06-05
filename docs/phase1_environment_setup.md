@@ -1,376 +1,180 @@
 # VectorFloorSeg Implementation - Phase 1: Environment Setup and Dependencies
 
-## Overview
+## 1. Overview
 
-This document covers the complete environment setup for VectorFloorSeg using pip and virtual environments. The codebase from the original `DrZiji/VecFloorSeg` repository has been directly integrated into this project's root directory. The main challenge is handling the custom PyTorch Geometric modifications that the project requires.
+This document provides a comprehensive guide to setting up the Python development environment for the VectorFloorSeg project on a Windows machine. It details the installation of Python, PyTorch with CUDA support, the specific PyTorch Geometric (PyG) version 2.0.4, and all other necessary project dependencies.
 
-## Prerequisites
+This guide incorporates learnings and troubleshooting steps encountered during the initial setup, aiming to provide a clear path and preempt potential issues for future setups. The primary package manager used is pip within a Python virtual environment.
 
-- Python 3.8 or higher
-- CUDA-compatible GPU (recommended)
-- Git for cloning repositories
+**Key Goals of this Phase:**
+*   Establish a stable and reproducible Python environment.
+*   Install PyTorch with GPU (CUDA) acceleration.
+*   Correctly install PyTorch Geometric 2.0.4 and its sparse dependencies.
+*   Address and document resolutions for common installation challenges, particularly with PyG and CairoSVG.
+*   Install all other Python packages required by the project.
+*   Verify the complete setup using a custom script.
+*   Finalize a 
+equirements.txt file reflecting the verified environment.
 
-## 1.1 Create Virtual Environment
+## 2. Prerequisites
 
-```bash
-# Ensure you are in the project root directory: C:\Users\FernandoMaytorena\GitHub\vectorfloorseg
-# Create a new virtual environment
-python -m venv vectorfloorseg_env
+Before starting, ensure your system meets the following requirements:
 
-# Activate the environment
-# On Linux/Mac:
-# source vectorfloorseg_env/bin/activate
-# On Windows (Git Bash):
-source vectorfloorseg_env/Scripts/activate
-# On Windows (Command Prompt/PowerShell):
-# vectorfloorseg_env\Scripts\activate
-```
+*   **Operating System:** Windows 10/11.
+*   **Python:** Python 3.11.x (this guide used 3.11.9). Ensure Python is added to your system PATH during installation.
+*   **Git:** Git for Windows (provides Git Bash, a recommended terminal).
+*   **NVIDIA GPU:** An NVIDIA GPU compatible with CUDA 11.8.
+*   **NVIDIA CUDA Toolkit & Drivers:**
+    *   While PyTorch with CUDA support often bundles necessary CUDA runtime libraries, it's good practice to have up-to-date NVIDIA drivers. The full CUDA Toolkit installation is generally not required if using PyTorch's pre-compiled binaries, but ensure your drivers support CUDA 11.8.
+*   **Microsoft C++ Build Tools:** Required for compiling some Python packages from source.
+    *   Install via the "Visual Studio Installer". Select "Desktop development with C++" workload.
 
-## 1.2 Integrate VecFloorSeg Code and Install Base Dependencies
+## 3. Virtual Environment Setup
 
-The codebase from the original `DrZiji/VecFloorSeg` repository has been directly integrated into this project's root directory. The following steps should be performed from the project root (`C:\Users\FernandoMaytorena\GitHub\vectorfloorseg`).
+Using a virtual environment is crucial for isolating project dependencies.
 
-```bash
-# Ensure you are in the project root directory
-# cd C:\Users\FernandoMaytorena\GitHub\vectorfloorseg
+1.  **Navigate to your project root directory** (e.g., C:\Users\YourUser\OneDrive\Documentos\GitHub\vectorfloorseg).
+2.  **Create the virtual environment:**
+    `bash
+    python -m venv vectorfloorseg_env
+    `
+3.  **Activate the virtual environment:**
+    *   In **Git Bash**:
+        `bash
+        source ./vectorfloorseg_env/Scripts/activate
+        `
+    *   In **Windows Command Prompt or PowerShell**:
+        `bash
+        .\vectorfloorseg_env\Scripts\Activate.ps1  # PowerShell (ensure execution policy allows scripts)
+        .\vectorfloorseg_env\Scripts\activate.bat   # Command Prompt
+        `
+    Your terminal prompt should now indicate that the (vectorfloorseg_env) is active.
 
-# (Activate your virtual environment 'vectorfloorseg_env' if not already active)
-# source vectorfloorseg_env/Scripts/activate
+## 4. PyTorch Installation (Version 2.7.1 with CUDA 11.8)
 
-# Upgrade pip to latest version
-pip install --upgrade pip
+Install PyTorch, torchvision, and torchaudio, specifying the version and CUDA compatibility.
 
-# Install PyTorch first (adjust CUDA version as needed for your system)
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-```
+`bash
+pip install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu118
+`
 
-## 1.3 Install PyTorch Geometric 2.0.4
+*   **Verification (Optional but Recommended):**
+    Create a temporary Python script (e.g., check_torch.py) or run directly in Python interpreter:
+    `python
+    import torch
+    print(f"PyTorch Version: {torch.__version__}")
+    print(f"CUDA Available: {torch.cuda.is_available()}")
+    if torch.cuda.is_available():
+        print(f"CUDA Version: {torch.version.cuda}")
+        print(f"Current GPU: {torch.cuda.get_device_name(torch.cuda.current_device())}")
+    `
 
-The project specifically requires PyG 2.0.4, which will then be customized.
+## 5. PyTorch Geometric (PyG) 2.0.4 Installation
 
-```bash
-# Install PyTorch Geometric 2.0.4 and related packages
-# (Ensure your virtual environment 'vectorfloorseg_env' is activated)
+This is a multi-step process requiring specific versions for compatibility with PyTorch 2.7.1 and CUDA 11.8.
+
+### 5.1. Install Sparse Dependencies
+
+PyG relies on several sparse matrix libraries. These must be installed first, matching your PyTorch and CUDA versions. The -f flag directs pip to find wheels at the specified URL.
+
+`bash
+pip install torch_scatter==2.1.2 -f https://data.pyg.org/whl/torch-2.7.1+cu118.html
+pip install torch_sparse==0.6.18 -f https://data.pyg.org/whl/torch-2.7.1+cu118.html
+pip install torch_cluster==1.6.3 -f https://data.pyg.org/whl/torch-2.7.1+cu118.html
+pip install torch_spline_conv==1.2.2 -f https://data.pyg.org/whl/torch-2.7.1+cu118.html
+`
+*   **Note:** The PyTorch version in the URL (e.g., 	orch-2.7.1+cu118) must exactly match your installed PyTorch version for these pre-compiled wheels. If a minor version mismatch occurs (e.g., you have 2.7.1 but wheels are only for 2.7.0), you might need to adjust the URL or PyTorch version slightly, but compatibility is key.
+
+### 5.2. Install PyTorch Geometric Core Package
+
+Once sparse dependencies are in place, install PyG version 2.0.4:
+
+`bash
 pip install torch-geometric==2.0.4
-pip install torch-scatter torch-sparse torch-cluster torch-spline-conv -f https://data.pyg.org/whl/torch-1.12.0+cu118.html
-```
+`
 
-## 1.4 Handle Custom PyG Modifications
+### 5.3. Critical Learning: Resolving PyG Import Conflict
 
-The critical step is replacing standard PyG components with custom ones provided in the integrated `VecFloorSeg` codebase. The `setup_custom_pyg.py` script (to be created in the project root) will handle this.
+A significant issue was encountered where Python would import PyG from a local directory within the project root (vectorfloorseg/torch_geometric) instead of the correctly installed package in the virtual environment's site-packages. This local directory, part of the original VecFloorSeg codebase, might be an incompatible or incomplete version (e.g., it reported as 2.0.5 but lacked key submodules like torch_geometric.profile).
 
-```python
-# File: setup_custom_pyg.py (to be created in project root)
-import os
-import shutil
-import site
-import sys
-from pathlib import Path
+*   **Symptoms:** ModuleNotFoundError for submodules like torch_geometric.profile, or torch_geometric.__version__ reporting an unexpected version.
+*   **Reasoning:** Python's import system prioritizes directories in the current working path (or sys.path) before site-packages. A local directory named torch_geometric shadows the installed package.
+*   **Solution:** Rename the local torch_geometric directory in the project root.
+    `bash
+    # In the project root directory (e.g., using Git Bash)
+    mv torch_geometric project_custom_pyg_source
+    `
+    This renaming (to project_custom_pyg_source) ensures that Python correctly finds and imports the PyG 2.0.4 installation from the virtual environment.
 
-def find_pyg_installation():
-    """Find the PyTorch Geometric installation directory in site-packages."""
-    # Check standard site-packages locations
-    site_packages_dirs = site.getsitepackages()
-    
-    # Also check user site-packages, as pip might install there
-    user_site_packages = site.getusersitepackages()
-    if user_site_packages not in site_packages_dirs:
-        site_packages_dirs.append(user_site_packages)
+## 6. Handling Custom PyG / GraphGym Components
 
-    for sp_dir in site_packages_dirs:
-        pyg_path = Path(sp_dir) / "torch_geometric"
-        if pyg_path.exists() and pyg_path.is_dir():
-            return pyg_path
-            
-    # Fallback for some environments like virtualenvs if not found above
-    # sys.prefix points to the root of the virtual environment
-    venv_sp_path = Path(sys.prefix) / "lib" / f"python{sys.version_major}.{sys.version_minor}" / "site-packages" / "torch_geometric"
-    if venv_sp_path.exists() and venv_sp_path.is_dir():
-        return venv_sp_path
-        
-    return None
+The original VecFloorSeg project includes custom modifications to PyTorch Geometric and GraphGym. These are now located in:
+*   project_custom_pyg_source/ (formerly torch_geometric/ at project root)
+*   graphgym/ (at project root)
 
-def backup_and_replace(src_dir: Path, dest_dir: Path, backup_base_dir: Path):
-    """Backs up original components from dest_dir and replaces them with components from src_dir."""
-    if not dest_dir.exists():
-        print(f"Error: Destination directory {dest_dir} does not exist. PyG installation might be incomplete.")
-        return
+A script, setup_custom_pyg.py, was developed to integrate these custom components into the active PyG installation.
 
-    for item in src_dir.iterdir():
-        dest_item_path = dest_dir / item.name
-        backup_item_path = backup_base_dir / dest_dir.name / item.name
+*   **Current Approach for Phase 1:** For the initial environment setup and verification, the priority was to establish a working, standard PyG 2.0.4 installation. The setup_custom_pyg.py script was **not run** after renaming project_custom_pyg_source.
+*   **Future Use:** If the specific customizations from VecFloorSeg are required for project functionality, setup_custom_pyg.py can be reviewed and run. This typically involves backing up the site-packages/torch_geometric and site-packages/graphgym directories and replacing them with the versions from project_custom_pyg_source/ and graphgym/.
 
-        # Ensure backup subdirectory exists
-        backup_item_path.parent.mkdir(parents=True, exist_ok=True)
+## 7. Installation of Other Project Dependencies
 
-        if dest_item_path.exists():
-            # Backup existing item (file or directory)
-            if dest_item_path.is_dir():
-                if not backup_item_path.exists(): # Avoid re-backing up if script is run multiple times
-                    shutil.copytree(dest_item_path, backup_item_path, dirs_exist_ok=True)
-                shutil.rmtree(dest_item_path) # Remove original directory
-            else: # It's a file
-                if not backup_item_path.exists():
-                    shutil.copy2(dest_item_path, backup_item_path) # copy2 preserves metadata
-                os.remove(dest_item_path) # Remove original file
-            print(f"  Backed up '{dest_item_path.name}' to '{backup_item_path}'")
+Several other Python packages are required.
 
-        # Copy new item
-        if item.is_dir():
-            shutil.copytree(item, dest_item_path, dirs_exist_ok=True)
-        else:
-            shutil.copy2(item, dest_item_path)
-        print(f"  Replaced '{dest_item_path.name}' with custom version from '{item}'")
+1.  **Install main additional packages:**
+    `bash
+    pip install opencv-python matplotlib tensorboard wandb albumentations svglib CairoSVG
+    `
+2.  **Ensure base packages are present:** Packages like 
+umpy, scipy, Pillow, 	qdm are often installed as dependencies of the above or PyTorch/PyG. They will be captured in the final 
+equirements.txt.
 
-def main():
-    pyg_install_path = find_pyg_installation()
-    if not pyg_install_path:
-        print("Error: PyTorch Geometric installation not found. Please ensure PyG 2.0.4 is installed.")
-        sys.exit(1)
-    
-    print(f"Found PyTorch Geometric installation at: {pyg_install_path}")
+### 7.1. Critical Learning: CairoSVG Setup on Windows
 
-    # Define source paths for custom components (relative to this script, now at project root)
-    # These are the folders containing the modified PyG/GraphGym code,
-    # integrated from the original VecFloorSeg repository.
-    project_root = Path(__file__).parent.resolve()
-    CUSTOM_PYG_SOURCE_DIR = project_root / "torch_geometric" # Custom PyG components
-    CUSTOM_GRAPHGYM_SOURCE_DIR = project_root / "graphgym"   # Custom GraphGym components
+CairoSVG is used for SVG file manipulation and has an external C library dependency.
 
-    # Backup directory (created in site-packages alongside PyG for clarity)
-    pyg_parent_dir = pyg_install_path.parent
-    backup_dir_base = pyg_parent_dir / "torch_geometric_backup_original"
-    
-    print(f"Original components will be backed up under: {backup_dir_base}")
+*   **Issue:** After pip install CairoSVG, you may encounter OSError: no library called "cairo-2" was found or similar errors related to libcairo-2.dll not being found.
+*   **Reasoning:** The CairoSVG Python package is a wrapper around the Cairo 2D graphics library. This C library must be separately installed on your system and accessible via the system's PATH.
+*   **Solution:**
+    1.  **Install GTK for Windows:** The Cairo library is commonly distributed with GTK. The recommended way is to use MSYS2:
+        *   Install MSYS2 from [https://www.msys2.org/](https://www.msys2.org/).
+        *   Open an MSYS2 terminal and run:
+            `bash
+            pacman -S mingw-w64-x86_64-gtk3
+            `
+    2.  **Add GTK bin to System PATH:**
+        *   Locate the bin directory of your MSYS2 MinGW64 installation (e.g., C:\msys64\mingw64\bin). This directory contains libcairo-2.dll and its dependencies.
+        *   Add this full path to your Windows System PATH environment variable.
+    3.  **Restart:** Close and reopen all terminals, IDEs, and command prompts. A system restart might be necessary for the PATH changes to be fully effective.
 
-    # 1. Handle PyTorch Geometric custom components
-    if CUSTOM_PYG_SOURCE_DIR.exists() and CUSTOM_PYG_SOURCE_DIR.is_dir():
-        print(f"\nProcessing custom PyTorch Geometric components from: {CUSTOM_PYG_SOURCE_DIR}")
-        # We are replacing the entire torch_geometric directory in site-packages
-        # with the custom one from our project.
-        
-        # First, backup the original torch_geometric directory from site-packages
-        original_pyg_backup_path = backup_dir_base / "torch_geometric_original_full"
-        if pyg_install_path.exists() and not original_pyg_backup_path.exists():
-            original_pyg_backup_path.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copytree(pyg_install_path, original_pyg_backup_path, dirs_exist_ok=True)
-            print(f"  Backed up original 'torch_geometric' directory to '{original_pyg_backup_path}'")
-        
-        # Remove the original torch_geometric directory from site-packages
-        shutil.rmtree(pyg_install_path)
-        print(f"  Removed original 'torch_geometric' directory from '{pyg_install_path}'")
-        
-        # Copy the custom torch_geometric directory to site-packages
-        shutil.copytree(CUSTOM_PYG_SOURCE_DIR, pyg_install_path, dirs_exist_ok=True)
-        print(f"  Copied custom 'torch_geometric' directory to '{pyg_install_path}'")
-        
-    else:
-        print(f"Error: Custom PyG source directory not found: {CUSTOM_PYG_SOURCE_DIR}")
-        print("Ensure the 'torch_geometric' directory (from VecFloorSeg) is at the project root.")
-        sys.exit(1)
+## 8. Verification Script (verify_installation.py)
 
-    # 2. Handle GraphGym custom components (if they exist and are needed)
-    # GraphGym is often a sub-component or used alongside PyG.
-    # The original VecFloorSeg might have custom GraphGym parts.
-    # We assume these would also go into the site-packages, potentially under pyg_install_path / 'graphgym'
-    # or a separate 'graphgym' in site-packages if it's a standalone install.
-    # For this example, let's assume custom graphgym components are to be copied into the *newly placed* custom torch_geometric's graphgym folder.
-    
-    pyg_graphgym_dest_path = pyg_install_path / "graphgym" # Destination for graphgym components within the custom PyG
+To ensure all components are correctly installed and accessible, a script verify_installation.py was created in the project root.
 
-    if CUSTOM_GRAPHGYM_SOURCE_DIR.exists() and CUSTOM_GRAPHGYM_SOURCE_DIR.is_dir():
-        print(f"\nProcessing custom GraphGym components from: {CUSTOM_GRAPHGYM_SOURCE_DIR}")
-        backup_graphgym_dir = backup_dir_base / "graphgym_original_within_pyg"
-        # The backup_and_replace function handles sub-components
-        backup_and_replace(CUSTOM_GRAPHGYM_SOURCE_DIR, pyg_graphgym_dest_path, backup_graphgym_dir)
-    else:
-        print(f"\nWarning: Custom GraphGym source directory '{CUSTOM_GRAPHGYM_SOURCE_DIR}' not found.")
-        print("Ensure the 'graphgym' directory (from VecFloorSeg) is at the project root if custom GraphGym components are needed.")
-        print("Proceeding without custom GraphGym components if not found or not applicable.")
-
-    print("\nCustom PyG and GraphGym setup complete.")
-    print(f"Original files are backed up in subdirectories under: {backup_dir_base}")
-    print("To restore, copy backed-up 'torch_geometric_original_full' back to site-packages, replacing the custom one.")
-    print("And similarly for GraphGym if it was customized.")
-
-if __name__ == "__main__":
-    main()
-```
-
-## 1.5 Create `requirements.txt` and Install Other Dependencies
-
-The original `VecFloorSeg` repository contains a `requirements.txt`. We will use this as a basis.
-First, copy the content of the `requirements.txt` from the integrated `VecFloorSeg` code into a new `requirements.txt` at the project root if it's not already there, or ensure the existing one is from `VecFloorSeg`. Then install these dependencies.
-
-```bash
-# (Ensure your virtual environment 'vectorfloorseg_env' is activated)
-
-# If you haven't already, ensure requirements.txt from VecFloorSeg is at the project root.
-# Then install additional dependencies:
-pip install -r requirements.txt
-
-# The phase1 guide also lists these, ensure they are covered by requirements.txt or install explicitly:
-# pip install opencv-python matplotlib numpy scipy Pillow tqdm tensorboard wandb albumentations svglib cairosvg
-# (It's better if these are in requirements.txt)
-```
-*Self-correction: The `requirements.txt` from VecFloorSeg likely already covers these. We will add it to git later.*
-
-## 1.6 Create and Run Custom PyG Setup Script
-
-1.  Create the `setup_custom_pyg.py` file in your project root (`C:\Users\FernandoMaytorena\GitHub\vectorfloorseg`) with the Python code provided in section 1.4.
-2.  Run the script:
-    ```bash
-    # (Ensure your virtual environment 'vectorfloorseg_env' is activated)
-    python setup_custom_pyg.py
-    ```
-
-## 1.7 Create and Run Verification Script
-
-1.  Create a `verify_installation.py` file in your project root with the following content:
-    ```python
-    # File: verify_installation.py
-    import sys
-    import importlib
-
-    print(f"Python version: {sys.version}")
-
-    def check_package(package_name, custom_check=None):
-        try:
-            module = importlib.import_module(package_name)
-            version = getattr(module, '__version__', 'N/A')
-            print(f"✓ {package_name} (Version: {version}) imported successfully.")
-            if custom_check:
-                custom_check(module)
-        except ImportError:
-            print(f"✗ {package_name} not found.")
-        except Exception as e:
-            print(f"✗ Error importing or checking {package_name}: {e}")
-
-    def check_pytorch_cuda(torch_module):
-        cuda_available = torch_module.cuda.is_available()
-        print(f"  CUDA Available: {cuda_available}")
-        if cuda_available:
-            print(f"  CUDA Version: {torch_module.version.cuda}")
-            print(f"  GPU Count: {torch_module.cuda.device_count()}")
-            print(f"  Current GPU: {torch_module.cuda.get_device_name(torch_module.cuda.current_device())}")
-
-    def check_pyg_custom_components(pyg_module):
-        # Example: Check for a function/class known to be in custom version
-        # This is highly dependent on what VecFloorSeg customized.
-        # For now, we'll just note its presence.
-        # Add specific checks here if you know what to look for.
-        print(f"  PyTorch Geometric location: {pyg_module.__path__}")
-        # A simple check could be to see if the path is now pointing to our project's dir,
-        # but setup_custom_pyg.py copies files *into* site-packages, so path won't change.
-        # Instead, one might check for a specific modified file's content or a unique function.
-        # For now, we assume if setup_custom_pyg.py ran, it's 'customized'.
-        print("  (Assuming custom components are integrated if setup_custom_pyg.py ran successfully)")
-
-
-    print("\nChecking core dependencies:")
-    check_package("torch", custom_check=check_pytorch_cuda)
-    check_package("torchvision")
-    check_package("torchaudio")
-    check_package("torch_geometric", custom_check=check_pyg_custom_components)
-    check_package("torch_scatter")
-    check_package("torch_sparse")
-    check_package("torch_cluster")
-    check_package("torch_spline_conv")
-
-    print("\nChecking other dependencies:")
-    other_packages = [
-        "cv2", "matplotlib", "numpy", "scipy", "PIL", 
-        "tqdm", "tensorboard", "wandb", "albumentations", 
-        "svglib", "cairosvg"
-    ]
-    for pkg in other_packages:
-        check_package(pkg)
-        
-    print("\nVerification script finished.")
-    print("Review the output above. If all checks (✓) pass and CUDA is available (if intended), setup is likely correct.")
-    print("Ensure to also check for specific custom PyG component functionality if known.")
-    ```
-2.  Run the verification script:
-    ```bash
-    # (Ensure your virtual environment 'vectorfloorseg_env' is activated)
+*   **Purpose:** Checks Python version, PyTorch version and CUDA availability, PyG version and location, versions of sparse dependencies, and import success for all other key packages.
+*   **Usage:**
+    `bash
+    # Ensure your virtual environment is active
     python verify_installation.py
-    ```
+    `
+*   **Expected Outcome:** The script should report success () for all checks. This confirms the environment is correctly configured.
 
-## Summary of Commands (after initial setup)
+## 9. Finalizing requirements.txt
 
-```bash
-# 0. Ensure you are in project root: C:\Users\FernandoMaytorena\GitHub\vectorfloorseg
-# 1. Create and activate virtual environment (if not done)
-# python -m venv vectorfloorseg_env
-# source vectorfloorseg_env/Scripts/activate
+Once all dependencies are installed and the verify_installation.py script confirms a successful setup, generate/update the requirements.txt file to capture the state of the virtual environment.
 
-# 2. Upgrade pip
-# pip install --upgrade pip
+`bash
+# Ensure your virtual environment is active
+pip freeze > requirements.txt
+`
+This requirements.txt file should be committed to Git and used for replicating the environment in the future.
 
-# 3. Install PyTorch
-# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+## 10. Troubleshooting Summary & Key Learnings
 
-# 4. Install PyTorch Geometric 2.0.4 and related
-# pip install torch-geometric==2.0.4
-# pip install torch-scatter torch-sparse torch-cluster torch-spline-conv -f https://data.pyg.org/whl/torch-1.12.0+cu118.html
+*   **PyG Import Conflict:** A local torch_geometric directory can shadow the installed package. **Solution:** Rename the local directory (e.g., to project_custom_pyg_source).
+*   **CairoSVG Missing DLLs on Windows:** CairoSVG needs the Cairo C library. **Solution:** Install GTK for Windows (via MSYS2 is recommended) and add its bin directory to the system PATH.
+*   **WinError 32 during pip install:** This indicates a file lock, often because a Python process or IDE is using files in the virtual environment. **Solution:** Close any running Python scripts, Jupyter notebooks, IDEs (like VS Code if it's accessing the venv), or terminal sessions that might be holding locks, then retry the pip install command.
+*   **PyG Sparse Dependency Versions:** Always use versions compatible with your specific PyTorch and CUDA setup. The -f <URL> flag with pip install is crucial for pointing to the correct pre-compiled wheels.
+*   **Virtual Environment Integrity:** Always ensure your virtual environment is activated before running pip commands or Python scripts.
 
-# 5. Install other dependencies (ensure requirements.txt is from VecFloorSeg)
-# pip install -r requirements.txt
-
-# 6. Setup custom PyG components (after creating setup_custom_pyg.py)
-# python setup_custom_pyg.py
-
-# 7. Verify installation (after creating verify_installation.py)
-# python verify_installation.py
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1.  **CUDA Version Mismatch**:
-    ```bash
-    # Check your CUDA version
-    nvidia-smi
-    # Install matching PyTorch version from pytorch.org
-    ```
-
-2.  **PyG Installation Fails**:
-    ```bash
-    # Try installing without pre-compiled wheels if issues persist
-    # pip install torch-geometric==2.0.4 --no-deps
-    # pip install torch-scatter torch-sparse --no-index --find-links https://data.pyg.org/whl/torch-1.12.0+cu118.html
-    ```
-
-3.  **Custom PyG Setup Fails (`setup_custom_pyg.py`)**:
-    *   Ensure you're in the project root directory (`C:\Users\FernandoMaytorena\GitHub\vectorfloorseg`).
-    *   Check that the project root contains the `torch_geometric` and `graphgym` folders (these are the custom component sources from the integrated VecFloorSeg codebase).
-    *   Verify write permissions to the Python site-packages directory where PyG is installed. This script modifies that installation.
-    *   Ensure PyTorch Geometric 2.0.4 was installed correctly before running the script.
-
-4.  **Memory Issues During Installation**:
-    ```bash
-    # If pip struggles with large packages:
-    # pip install --cache-dir /tmp/pip-cache --no-cache-dir <package_name>
-    ```
-
-### Verification Checklist
-
-After running `verify_installation.py`, ensure you see:
-- ✓ Python version (3.8+)
-- ✓ PyTorch with CUDA support (if GPU is intended)
-- ✓ PyTorch Geometric 2.0.4 (and its location noted)
-- ✓ All required packages (torch_scatter, cv2, numpy, etc.) imported successfully.
-- ✓ Confirmation that custom components are assumed integrated if `setup_custom_pyg.py` ran without errors.
-
-## Next Steps
-
-Once Phase 1 is complete and verified:
-- Proceed to **Phase 2**: Project Structure Setup and Pretrained Models.
-- Commit all new/modified files (`setup_custom_pyg.py`, `verify_installation.py`, updated `phase1_environment_setup.md`, `requirements.txt` if it was created/updated, etc.) to your Git repository.
-
-## Environment Notes
-
-- Always activate the `vectorfloorseg_env` virtual environment before working on the project.
-- The custom PyG setup (`setup_custom_pyg.py`) modifies your PyG installation within the virtual environment. Keep the backup it creates if you need to restore the original PyG 2.0.4.
-- CUDA version compatibility is critical for GPU performance.
+This completes Phase 1: Environment Setup. The system should now be ready for subsequent development phases.

@@ -1,0 +1,32 @@
+data:
+  datasets:
+  - R2V
+  - CubiCasa5k
+  extend_lines: true
+  flip_probability: 0.5
+  image_size: !!python/tuple
+  - 128
+  - 128
+  normalize_coords: true
+  use_data_augmentation: true
+description: Lightweight VectorFloorSeg with ResNet-50 for faster iteration
+device: cuda
+model:
+  backbone: resnet50
+  dropout: 0.1
+  hidden_dim: 256
+  nheads: 8
+  num_classes: 2
+  num_decoder_layers: 4
+  num_encoder_layers: 4
+name: lightweight_resnet50
+seed: 42
+training:
+  batch_size: 16
+  boundary_loss_weight: 0.5
+  epochs: 20
+  gradient_clip_norm: 1.0
+  learning_rate: 0.0005
+  momentum: 0.9
+  scheduler: cosine
+  weight_decay: 0.0001

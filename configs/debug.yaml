@@ -1,0 +1,32 @@
+data:
+  datasets:
+  - R2V
+  - CubiCasa5k
+  extend_lines: true
+  flip_probability: 0.5
+  image_size: !!python/tuple
+  - 64
+  - 64
+  normalize_coords: true
+  use_data_augmentation: false
+description: Minimal configuration for debugging purposes
+device: cpu
+model:
+  backbone: resnet18
+  dropout: 0.1
+  hidden_dim: 64
+  nheads: 2
+  num_classes: 2
+  num_decoder_layers: 1
+  num_encoder_layers: 1
+name: debug_config
+seed: 42
+training:
+  batch_size: 2
+  boundary_loss_weight: 0.5
+  epochs: 1
+  gradient_clip_norm: 1.0
+  learning_rate: 0.001
+  momentum: 0.9
+  scheduler: cosine
+  weight_decay: 0.0001
